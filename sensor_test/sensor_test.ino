@@ -24,6 +24,10 @@
 const int PIR_PIN   = 13;
 const int SOUND_PIN = 14;
 
+// Track previous states to detect changes
+int lastPir   = -1;
+int lastSound = -1;
+
 void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
@@ -32,7 +36,7 @@ void setup() {
   Serial.println("=== Sensor Test Ready ===");
   Serial.println("PIR   → GPIO 13");
   Serial.println("Sound → GPIO 14");
-  Serial.println("Waiting for PIR warm-up (30–60 s)...");
+  Serial.println("Waiting for PIR warm-up (30-60 s)...");
   Serial.println("-------------------------");
 }
 
@@ -40,6 +44,22 @@ void loop() {
   int pirVal   = digitalRead(PIR_PIN);
   int soundVal = digitalRead(SOUND_PIN);
 
-  Serial.printf("PIR=%d  SOUND=%d\n", pirVal, soundVal);
+  // Print raw values every cycle
+  Serial.printf("PIR=%d  SOUND=%d", pirVal, soundVal);
+
+  // Print event labels when state changes
+  if (pirVal != lastPir) {
+    if (pirVal == HIGH) Serial.print("  >> MOTION DETECTED");
+    else                Serial.print("  >> Motion cleared");
+    lastPir = pirVal;
+  }
+
+  if (soundVal != lastSound) {
+    if (soundVal == HIGH) Serial.print("  >> SOUND TRIGGERED");
+    else                  Serial.print("  >> Sound cleared");
+    lastSound = soundVal;
+  }
+
+  Serial.println();
   delay(200);
 }
