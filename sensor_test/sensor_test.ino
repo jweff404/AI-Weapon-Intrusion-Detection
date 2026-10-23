@@ -44,8 +44,9 @@ void loop() {
   int pirVal   = digitalRead(PIR_PIN);
   int soundVal = digitalRead(SOUND_PIN);
 
-  // Print raw values every cycle
-  Serial.printf("PIR=%d  SOUND=%d", pirVal, soundVal);
+  // Print timestamp + raw values every cycle
+  unsigned long ms = millis();
+  Serial.printf("[%lu ms] PIR=%d  SOUND=%d", ms, pirVal, soundVal);
 
   // Print event labels when state changes
   if (pirVal != lastPir) {
