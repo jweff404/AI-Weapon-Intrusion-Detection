@@ -28,6 +28,10 @@ const int SOUND_PIN = 14;
 int lastPir   = -1;
 int lastSound = -1;
 
+// Alert counters since boot
+int motionCount = 0;
+int soundCount  = 0;
+
 void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
@@ -50,14 +54,14 @@ void loop() {
 
   // Print event labels when state changes
   if (pirVal != lastPir) {
-    if (pirVal == HIGH) Serial.print("  >> MOTION DETECTED");
-    else                Serial.print("  >> Motion cleared");
+    if (pirVal == HIGH) { motionCount++; Serial.printf("  >> MOTION DETECTED (#%d)", motionCount); }
+    else                  Serial.print("  >> Motion cleared");
     lastPir = pirVal;
   }
 
   if (soundVal != lastSound) {
-    if (soundVal == HIGH) Serial.print("  >> SOUND TRIGGERED");
-    else                  Serial.print("  >> Sound cleared");
+    if (soundVal == HIGH) { soundCount++; Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount); }
+    else                    Serial.print("  >> Sound cleared");
     lastSound = soundVal;
   }
 
