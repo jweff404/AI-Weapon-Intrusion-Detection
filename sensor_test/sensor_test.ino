@@ -23,6 +23,7 @@
 
 const int PIR_PIN   = 13;
 const int SOUND_PIN = 14;
+const int LED_PIN   = 4;   // ESP32-CAM onboard flash LED
 
 // Track previous states to detect changes
 int lastPir   = -1;
@@ -36,6 +37,8 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
   pinMode(SOUND_PIN, INPUT);
+  pinMode(LED_PIN,   OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   Serial.println("=== Sensor Test Ready ===");
   Serial.println("PIR   → GPIO 13");
@@ -64,6 +67,9 @@ void loop() {
     else                    Serial.print("  >> Sound cleared");
     lastSound = soundVal;
   }
+
+  // Flash onboard LED when either sensor triggers
+  digitalWrite(LED_PIN, (pirVal == HIGH || soundVal == HIGH) ? HIGH : LOW);
 
   Serial.println();
   delay(200);
