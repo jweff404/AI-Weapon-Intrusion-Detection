@@ -33,6 +33,10 @@ int lastSound = -1;
 int motionCount = 0;
 int soundCount  = 0;
 
+// Sound debounce: ignore re-triggers within 500 ms
+unsigned long lastSoundTime = 0;
+const unsigned long SOUND_COOLDOWN_MS = 500;
+
 void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
@@ -63,8 +67,14 @@ void loop() {
   }
 
   if (soundVal != lastSound) {
-    if (soundVal == HIGH) { soundCount++; Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount); }
-    else                    Serial.print("  >> Sound cleared");
+    unsigned long now = millis();
+    if (soundVal == HIGH && (now - lastSoundTime) > SOUND_COOLDOWN_MS) {
+      soundCount++;
+      lastSoundTime = now;
+      Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount);
+    } else if (soundVal == LOW) {
+      Serial.print("  >> Sound cleared");
+    }
     lastSound = soundVal;
   }
 
