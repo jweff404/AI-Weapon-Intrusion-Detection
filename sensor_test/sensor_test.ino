@@ -37,6 +37,10 @@ int soundCount  = 0;
 unsigned long lastSoundTime = 0;
 const unsigned long SOUND_COOLDOWN_MS = 500;
 
+// Periodic status summary every 10 seconds
+unsigned long lastSummaryTime = 0;
+const unsigned long SUMMARY_INTERVAL_MS = 10000;
+
 void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
@@ -80,6 +84,16 @@ void loop() {
 
   // Flash onboard LED when either sensor triggers
   digitalWrite(LED_PIN, (pirVal == HIGH || soundVal == HIGH) ? HIGH : LOW);
+
+  // Print periodic status summary every 10 seconds
+  if (ms - lastSummaryTime >= SUMMARY_INTERVAL_MS) {
+    lastSummaryTime = ms;
+    Serial.println("--- STATUS ---");
+    Serial.printf("  Uptime  : %lu s\n", ms / 1000);
+    Serial.printf("  Motion  : %d event(s)\n", motionCount);
+    Serial.printf("  Sound   : %d event(s)\n", soundCount);
+    Serial.println("--------------");
+  }
 
   Serial.println();
   delay(200);
