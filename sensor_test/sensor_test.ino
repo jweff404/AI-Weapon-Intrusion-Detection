@@ -21,9 +21,15 @@
  *   potentiometer on the sensor board.
  */
 
-const int PIR_PIN   = 13;
-const int SOUND_PIN = 14;
-const int LED_PIN   = 4;   // ESP32-CAM onboard flash LED
+// ── Configuration ────────────────────────────────────────
+#define PIR_PIN             13      // PIR sensor GPIO
+#define SOUND_PIN           14      // Sound sensor GPIO
+#define LED_PIN              4      // Onboard flash LED GPIO
+#define SERIAL_BAUD     115200      // Serial Monitor baud rate
+#define LOOP_DELAY_MS      200      // Polling interval (ms)
+#define SOUND_COOLDOWN_MS  500      // Min ms between sound events
+#define SUMMARY_INTERVAL_MS 10000  // Status print interval (ms)
+// ─────────────────────────────────────────────────────────
 
 // Track previous states to detect changes
 int lastPir   = -1;
@@ -33,20 +39,18 @@ int lastSound = -1;
 int motionCount = 0;
 int soundCount  = 0;
 
-// Sound debounce: ignore re-triggers within 500 ms
+// Sound debounce: ignore re-triggers within SOUND_COOLDOWN_MS
 unsigned long lastSoundTime = 0;
-const unsigned long SOUND_COOLDOWN_MS = 500;
 
-// Periodic status summary every 10 seconds
+// Periodic status summary
 unsigned long lastSummaryTime = 0;
-const unsigned long SUMMARY_INTERVAL_MS = 10000;
 
 // Last event tracking
 unsigned long lastEventTime = 0;
 const char*   lastEventName = "none";
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(SERIAL_BAUD);
   pinMode(PIR_PIN,   INPUT);
   pinMode(SOUND_PIN, INPUT);
   pinMode(LED_PIN,   OUTPUT);
@@ -112,5 +116,5 @@ void loop() {
   }
 
   Serial.println();
-  delay(200);
+  delay(LOOP_DELAY_MS);
 }
