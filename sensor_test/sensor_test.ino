@@ -41,6 +41,10 @@ const unsigned long SOUND_COOLDOWN_MS = 500;
 unsigned long lastSummaryTime = 0;
 const unsigned long SUMMARY_INTERVAL_MS = 10000;
 
+// Last event tracking
+unsigned long lastEventTime = 0;
+const char*   lastEventName = "none";
+
 void setup() {
   Serial.begin(115200);
   pinMode(PIR_PIN,   INPUT);
@@ -65,8 +69,14 @@ void loop() {
 
   // Print event labels when state changes
   if (pirVal != lastPir) {
-    if (pirVal == HIGH) { motionCount++; Serial.printf("  >> MOTION DETECTED (#%d)", motionCount); }
-    else                  Serial.print("  >> Motion cleared");
+    if (pirVal == HIGH) {
+      motionCount++;
+      lastEventTime = ms;
+      lastEventName = "MOTION";
+      Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
+    } else {
+      Serial.print("  >> Motion cleared");
+    }
     lastPir = pirVal;
   }
 
@@ -75,6 +85,8 @@ void loop() {
     if (soundVal == HIGH && (now - lastSoundTime) > SOUND_COOLDOWN_MS) {
       soundCount++;
       lastSoundTime = now;
+      lastEventTime = now;
+      lastEventName = "SOUND";
       Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount);
     } else if (soundVal == LOW) {
       Serial.print("  >> Sound cleared");
@@ -89,9 +101,13 @@ void loop() {
   if (ms - lastSummaryTime >= SUMMARY_INTERVAL_MS) {
     lastSummaryTime = ms;
     Serial.println("--- STATUS ---");
-    Serial.printf("  Uptime  : %lu s\n", ms / 1000);
-    Serial.printf("  Motion  : %d event(s)\n", motionCount);
-    Serial.printf("  Sound   : %d event(s)\n", soundCount);
+    Serial.printf("  Uptime     : %lu s\n", ms / 1000);
+    Serial.printf("  Motion     : %d event(s)\n", motionCount);
+    Serial.printf("  Sound      : %d event(s)\n", soundCount);
+    if (lastEventTime > 0)
+      Serial.printf("  Last event : %s (%lu s ago)\n", lastEventName, (ms - lastEventTime) / 1000);
+    else
+      Serial.println("  Last event : none");
     Serial.println("--------------");
   }
 
