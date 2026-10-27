@@ -22,13 +22,14 @@
  */
 
 // ── Configuration ────────────────────────────────────────
-#define PIR_PIN             13      // PIR sensor GPIO
-#define SOUND_PIN           14      // Sound sensor GPIO
-#define LED_PIN              4      // Onboard flash LED GPIO
-#define SERIAL_BAUD     115200      // Serial Monitor baud rate
-#define LOOP_DELAY_MS      200      // Polling interval (ms)
-#define SOUND_COOLDOWN_MS  500      // Min ms between sound events
-#define SUMMARY_INTERVAL_MS 10000  // Status print interval (ms)
+#define PIR_PIN              13      // PIR sensor GPIO
+#define SOUND_PIN            14      // Sound sensor GPIO
+#define LED_PIN               4      // Onboard flash LED GPIO
+#define SERIAL_BAUD      115200      // Serial Monitor baud rate
+#define LOOP_DELAY_MS       200      // Polling interval (ms)
+#define SOUND_COOLDOWN_MS   500      // Min ms between sound events
+#define SUMMARY_INTERVAL_MS 10000   // Status print interval (ms)
+#define PIR_WARMUP_MS       60000   // PIR lockout after boot (ms)
 // ─────────────────────────────────────────────────────────
 
 // Track previous states to detect changes
@@ -74,10 +75,14 @@ void loop() {
   // Print event labels when state changes
   if (pirVal != lastPir) {
     if (pirVal == HIGH) {
-      motionCount++;
-      lastEventTime = ms;
-      lastEventName = "MOTION";
-      Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
+      if (ms < PIR_WARMUP_MS) {
+        Serial.printf("  >> PIR warming up (%lu s left)", (PIR_WARMUP_MS - ms) / 1000);
+      } else {
+        motionCount++;
+        lastEventTime = ms;
+        lastEventName = "MOTION";
+        Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
+      }
     } else {
       Serial.print("  >> Motion cleared");
     }
