@@ -61,7 +61,35 @@ void setup() {
   Serial.println("PIR   → GPIO 13");
   Serial.println("Sound → GPIO 14");
   Serial.println("Waiting for PIR warm-up (30-60 s)...");
+  Serial.println("Commands: 's' = status now  |  'r' = reset counters");
   Serial.println("-------------------------");
+}
+
+void printStatus(unsigned long ms) {
+  Serial.println("--- STATUS ---");
+  Serial.printf("  Uptime     : %lu s\n", ms / 1000);
+  Serial.printf("  Motion     : %d event(s)\n", motionCount);
+  Serial.printf("  Sound      : %d event(s)\n", soundCount);
+  if (lastEventTime > 0)
+    Serial.printf("  Last event : %s (%lu s ago)\n", lastEventName, (ms - lastEventTime) / 1000);
+  else
+    Serial.println("  Last event : none");
+  Serial.println("--------------");
+}
+
+void handleSerialInput(unsigned long ms) {
+  if (!Serial.available()) return;
+  char cmd = Serial.read();
+  if (cmd == 's' || cmd == 'S') {
+    Serial.println("[CMD] Status requested:");
+    printStatus(ms);
+  } else if (cmd == 'r' || cmd == 'R') {
+    motionCount  = 0;
+    soundCount   = 0;
+    lastEventTime = 0;
+    lastEventName = "none";
+    Serial.println("[CMD] Counters reset.");
+  }
 }
 
 void loop() {
@@ -106,18 +134,13 @@ void loop() {
   // Flash onboard LED when either sensor triggers
   digitalWrite(LED_PIN, (pirVal == HIGH || soundVal == HIGH) ? HIGH : LOW);
 
-  // Print periodic status summary every 10 seconds
+  // Handle Serial commands ('s' = status, 'r' = reset)
+  handleSerialInput(ms);
+
+  // Print periodic status summary
   if (ms - lastSummaryTime >= SUMMARY_INTERVAL_MS) {
     lastSummaryTime = ms;
-    Serial.println("--- STATUS ---");
-    Serial.printf("  Uptime     : %lu s\n", ms / 1000);
-    Serial.printf("  Motion     : %d event(s)\n", motionCount);
-    Serial.printf("  Sound      : %d event(s)\n", soundCount);
-    if (lastEventTime > 0)
-      Serial.printf("  Last event : %s (%lu s ago)\n", lastEventName, (ms - lastEventTime) / 1000);
-    else
-      Serial.println("  Last event : none");
-    Serial.println("--------------");
+    printStatus(ms);
   }
 
   Serial.println();
