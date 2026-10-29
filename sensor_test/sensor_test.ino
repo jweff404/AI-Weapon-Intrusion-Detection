@@ -22,6 +22,7 @@
  */
 
 // ── Configuration ────────────────────────────────────────
+#define VERSION             "1.1.0"  // Firmware version
 #define PIR_PIN              13      // PIR sensor GPIO
 #define SOUND_PIN            14      // Sound sensor GPIO
 #define LED_PIN               4      // Onboard flash LED GPIO
@@ -58,6 +59,8 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
 
   Serial.println("=== Sensor Test Ready ===");
+  Serial.printf( "    Firmware v%s\n", VERSION);
+  Serial.printf( "    Built: %s %s\n", __DATE__, __TIME__);
   Serial.println("PIR   → GPIO 13");
   Serial.println("Sound → GPIO 14");
   Serial.println("Waiting for PIR warm-up (30-60 s)...");
