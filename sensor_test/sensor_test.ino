@@ -51,6 +51,9 @@ unsigned long lastSummaryTime = 0;
 unsigned long lastEventTime = 0;
 const char*   lastEventName = "none";
 
+// Quiet mode: suppress continuous polling output
+bool quietMode = false;
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(PIR_PIN,   INPUT);
@@ -64,7 +67,7 @@ void setup() {
   Serial.println("PIR   → GPIO 13");
   Serial.println("Sound → GPIO 14");
   Serial.println("Waiting for PIR warm-up (30-60 s)...");
-  Serial.println("Commands: 's' = status now  |  'r' = reset counters  |  'h' = help");
+  Serial.println("Commands: 's' = status now  |  'r' = reset counters  |  'q' = quiet mode  |  'h' = help");
   Serial.println("-------------------------");
 }
 
@@ -92,10 +95,14 @@ void handleSerialInput(unsigned long ms) {
     lastEventTime = 0;
     lastEventName = "none";
     Serial.println("[CMD] Counters reset.");
+  } else if (cmd == 'q' || cmd == 'Q') {
+    quietMode = !quietMode;
+    Serial.printf("[CMD] Quiet mode %s.\n", quietMode ? "ON  (events only)" : "OFF (verbose)");
   } else if (cmd == 'h' || cmd == 'H' || cmd == '?') {
     Serial.println("── Commands ──────────────────");
     Serial.println("  s  Print status snapshot");
     Serial.println("  r  Reset event counters");
+    Serial.println("  q  Toggle quiet mode");
     Serial.println("  h  Show this help");
     Serial.println("──────────────────────────────");
   }
@@ -105,23 +112,28 @@ void loop() {
   int pirVal   = digitalRead(PIR_PIN);
   int soundVal = digitalRead(SOUND_PIN);
 
-  // Print timestamp + raw values every cycle
+  // Print timestamp + raw values every cycle (suppressed in quiet mode)
   unsigned long ms = millis();
-  Serial.printf("[%lu ms] PIR=%d  SOUND=%d", ms, pirVal, soundVal);
+  if (!quietMode) {
+    Serial.printf("[%lu ms] PIR=%d  SOUND=%d", ms, pirVal, soundVal);
+  }
 
   // Print event labels when state changes
   if (pirVal != lastPir) {
     if (pirVal == HIGH) {
       if (ms < PIR_WARMUP_MS) {
-        Serial.printf("  >> PIR warming up (%lu s left)", (PIR_WARMUP_MS - ms) / 1000);
+        if (!quietMode) Serial.printf("  >> PIR warming up (%lu s left)", (PIR_WARMUP_MS - ms) / 1000);
       } else {
         motionCount++;
         lastEventTime = ms;
         lastEventName = "MOTION";
+        if (quietMode) Serial.printf("[%lu ms] ", ms);
         Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
+        Serial.println();
       }
     } else {
-      Serial.print("  >> Motion cleared");
+      if (quietMode) Serial.printf("[%lu ms] ", ms);
+      Serial.println("  >> Motion cleared");
     }
     lastPir = pirVal;
   }
@@ -133,9 +145,12 @@ void loop() {
       lastSoundTime = now;
       lastEventTime = now;
       lastEventName = "SOUND";
+      if (quietMode) Serial.printf("[%lu ms] ", now);
       Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount);
+      Serial.println();
     } else if (soundVal == LOW) {
-      Serial.print("  >> Sound cleared");
+      if (quietMode) Serial.printf("[%lu ms] ", ms);
+      Serial.println("  >> Sound cleared");
     }
     lastSound = soundVal;
   }
@@ -152,6 +167,6 @@ void loop() {
     printStatus(ms);
   }
 
-  Serial.println();
+  if (!quietMode) Serial.println();
   delay(LOOP_DELAY_MS);
 }
