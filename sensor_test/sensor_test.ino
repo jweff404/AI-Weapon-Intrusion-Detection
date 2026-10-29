@@ -64,7 +64,7 @@ void setup() {
   Serial.println("PIR   → GPIO 13");
   Serial.println("Sound → GPIO 14");
   Serial.println("Waiting for PIR warm-up (30-60 s)...");
-  Serial.println("Commands: 's' = status now  |  'r' = reset counters");
+  Serial.println("Commands: 's' = status now  |  'r' = reset counters  |  'h' = help");
   Serial.println("-------------------------");
 }
 
@@ -92,6 +92,12 @@ void handleSerialInput(unsigned long ms) {
     lastEventTime = 0;
     lastEventName = "none";
     Serial.println("[CMD] Counters reset.");
+  } else if (cmd == 'h' || cmd == 'H' || cmd == '?') {
+    Serial.println("── Commands ──────────────────");
+    Serial.println("  s  Print status snapshot");
+    Serial.println("  r  Reset event counters");
+    Serial.println("  h  Show this help");
+    Serial.println("──────────────────────────────");
   }
 }
 
