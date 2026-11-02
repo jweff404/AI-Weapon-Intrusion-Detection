@@ -31,6 +31,7 @@
 #define SOUND_COOLDOWN_MS   500      // Min ms between sound events
 #define SUMMARY_INTERVAL_MS 10000   // Status print interval (ms)
 #define PIR_WARMUP_MS       60000   // PIR lockout after boot (ms)
+#define ALERT_THRESHOLD         5   // Motion events before HIGH ALERT warning
 // ─────────────────────────────────────────────────────────
 
 // Track previous states to detect changes
@@ -137,6 +138,8 @@ void loop() {
         lastEventName = "MOTION";
         if (quietMode) Serial.printf("[%lu ms] ", ms);
         Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
+        if (motionCount >= ALERT_THRESHOLD)
+          Serial.print("  *** HIGH ALERT ***");
         Serial.println();
       }
     } else {
