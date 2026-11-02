@@ -22,7 +22,7 @@
  */
 
 // ── Configuration ────────────────────────────────────────
-#define VERSION             "1.1.0"  // Firmware version
+#define VERSION             "1.2.0"  // Firmware version
 #define PIR_PIN              13      // PIR sensor GPIO
 #define SOUND_PIN            14      // Sound sensor GPIO
 #define LED_PIN               4      // Onboard flash LED GPIO
