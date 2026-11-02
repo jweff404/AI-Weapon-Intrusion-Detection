@@ -112,7 +112,20 @@ void handleSerialInput(unsigned long ms) {
     Serial.println("  s  Print status snapshot");
     Serial.println("  r  Reset event counters");
     Serial.println("  q  Toggle quiet mode");
+    Serial.println("  c  Print config values");
     Serial.println("  h  Show this help");
+    Serial.println("──────────────────────────────");
+  } else if (cmd == 'c' || cmd == 'C') {
+    Serial.println("── Config ────────────────────");
+    Serial.printf( "  VERSION             : %s\n",   VERSION);
+    Serial.printf( "  PIR_PIN             : %d\n",   PIR_PIN);
+    Serial.printf( "  SOUND_PIN           : %d\n",   SOUND_PIN);
+    Serial.printf( "  LED_PIN             : %d\n",   LED_PIN);
+    Serial.printf( "  LOOP_DELAY_MS       : %d ms\n",LOOP_DELAY_MS);
+    Serial.printf( "  SOUND_COOLDOWN_MS   : %d ms\n",SOUND_COOLDOWN_MS);
+    Serial.printf( "  SUMMARY_INTERVAL_MS : %d ms\n",SUMMARY_INTERVAL_MS);
+    Serial.printf( "  PIR_WARMUP_MS       : %d ms\n",PIR_WARMUP_MS);
+    Serial.printf( "  ALERT_THRESHOLD     : %d\n",   ALERT_THRESHOLD);
     Serial.println("──────────────────────────────");
   }
 }
