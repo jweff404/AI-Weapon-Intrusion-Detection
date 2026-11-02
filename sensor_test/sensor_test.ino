@@ -72,14 +72,22 @@ void setup() {
 }
 
 void printStatus(unsigned long ms) {
+  unsigned long totalSec = ms / 1000;
+  unsigned long h  = totalSec / 3600;
+  unsigned long m  = (totalSec % 3600) / 60;
+  unsigned long s  = totalSec % 60;
+
   Serial.println("--- STATUS ---");
-  Serial.printf("  Uptime     : %lu s\n", ms / 1000);
+  Serial.printf("  Uptime     : %02lu:%02lu:%02lu\n", h, m, s);
   Serial.printf("  Motion     : %d event(s)\n", motionCount);
   Serial.printf("  Sound      : %d event(s)\n", soundCount);
-  if (lastEventTime > 0)
-    Serial.printf("  Last event : %s (%lu s ago)\n", lastEventName, (ms - lastEventTime) / 1000);
-  else
+  if (lastEventTime > 0) {
+    unsigned long agoSec = (ms - lastEventTime) / 1000;
+    Serial.printf("  Last event : %s (%02lu:%02lu ago)\n",
+                  lastEventName, agoSec / 60, agoSec % 60);
+  } else {
     Serial.println("  Last event : none");
+  }
   Serial.println("--------------");
 }
 
