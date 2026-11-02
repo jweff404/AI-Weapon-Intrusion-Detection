@@ -55,6 +55,9 @@ const char*   lastEventName = "none";
 // Quiet mode: suppress continuous polling output
 bool quietMode = false;
 
+// Motion duration tracking
+unsigned long motionStartTime = 0;
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(PIR_PIN,   INPUT);
@@ -147,6 +150,7 @@ void loop() {
         if (!quietMode) Serial.printf("  >> PIR warming up (%lu s left)", (PIR_WARMUP_MS - ms) / 1000);
       } else {
         motionCount++;
+        motionStartTime = ms;
         lastEventTime = ms;
         lastEventName = "MOTION";
         if (quietMode) Serial.printf("[%lu ms] ", ms);
@@ -157,7 +161,9 @@ void loop() {
       }
     } else {
       if (quietMode) Serial.printf("[%lu ms] ", ms);
-      Serial.println("  >> Motion cleared");
+      unsigned long dur = (motionStartTime > 0) ? (ms - motionStartTime) / 1000 : 0;
+      Serial.printf("  >> Motion cleared (lasted %lu s)\n", dur);
+      motionStartTime = 0;
     }
     lastPir = pirVal;
   }
