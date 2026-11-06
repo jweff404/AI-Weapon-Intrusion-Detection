@@ -32,6 +32,8 @@
 #define SUMMARY_INTERVAL_MS 10000   // Status print interval (ms)
 #define PIR_WARMUP_MS       60000   // PIR lockout after boot (ms)
 #define ALERT_THRESHOLD         5   // Motion events before HIGH ALERT warning
+#define ELEVATED_THRESHOLD      3   // Total events before ELEVATED threat level
+#define HIGH_THRESHOLD          8   // Total events before HIGH threat level
 // ─────────────────────────────────────────────────────────
 
 // Track previous states to detect changes
@@ -81,8 +83,13 @@ void printStatus(unsigned long ms) {
   unsigned long m  = (totalSec % 3600) / 60;
   unsigned long s  = totalSec % 60;
 
+  int totalEvents = motionCount + soundCount;
+  const char* threat = (totalEvents >= HIGH_THRESHOLD)     ? "HIGH"     :
+                       (totalEvents >= ELEVATED_THRESHOLD)  ? "ELEVATED" : "NORMAL";
+
   Serial.println("--- STATUS ---");
   Serial.printf("  Uptime     : %02lu:%02lu:%02lu\n", h, m, s);
+  Serial.printf("  Threat     : %s\n", threat);
   Serial.printf("  Motion     : %d event(s)\n", motionCount);
   Serial.printf("  Sound      : %d event(s)\n", soundCount);
   if (lastEventTime > 0) {
