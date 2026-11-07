@@ -60,6 +60,9 @@ bool quietMode = false;
 // Motion duration tracking
 unsigned long motionStartTime = 0;
 
+// Threat level change tracking
+const char* lastThreatLevel = "NORMAL";
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(PIR_PIN,   INPUT);
@@ -75,6 +78,17 @@ void setup() {
   Serial.println("Waiting for PIR warm-up (30-60 s)...");
   Serial.println("Commands: 's' = status now  |  'r' = reset counters  |  'q' = quiet mode  |  'h' = help");
   Serial.println("-------------------------");
+}
+
+void checkThreatLevel(unsigned long ms) {
+  int total = motionCount + soundCount;
+  const char* current = (total >= HIGH_THRESHOLD)      ? "HIGH"     :
+                        (total >= ELEVATED_THRESHOLD)   ? "ELEVATED" : "NORMAL";
+  if (current != lastThreatLevel) {
+    Serial.printf("[%lu ms] !! THREAT LEVEL CHANGED: %s -> %s !!\n",
+                  ms, lastThreatLevel, current);
+    lastThreatLevel = current;
+  }
 }
 
 void printStatus(unsigned long ms) {
@@ -194,6 +208,9 @@ void loop() {
 
   // Flash onboard LED when either sensor triggers
   digitalWrite(LED_PIN, (pirVal == HIGH || soundVal == HIGH) ? HIGH : LOW);
+
+  // Check if threat level has changed and notify immediately
+  checkThreatLevel(ms);
 
   // Handle Serial commands ('s' = status, 'r' = reset)
   handleSerialInput(ms);
