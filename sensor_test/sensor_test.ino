@@ -63,6 +63,39 @@ unsigned long motionStartTime = 0;
 // Threat level change tracking
 const char* lastThreatLevel = "NORMAL";
 
+// ── Circular event log (last 5 events) ───────────────────
+#define EVENT_LOG_SIZE 5
+struct EventEntry {
+  const char*   name;
+  unsigned long timeMs;
+};
+EventEntry eventLog[EVENT_LOG_SIZE];
+int eventLogHead  = 0;   // next write position
+int eventLogCount = 0;   // how many entries filled
+
+void logEvent(const char* name, unsigned long ms) {
+  eventLog[eventLogHead] = { name, ms };
+  eventLogHead = (eventLogHead + 1) % EVENT_LOG_SIZE;
+  if (eventLogCount < EVENT_LOG_SIZE) eventLogCount++;
+}
+
+void printEventLog(unsigned long ms) {
+  Serial.println("── Event Log ─────────────────");
+  if (eventLogCount == 0) {
+    Serial.println("  (no events yet)");
+  } else {
+    int start = (eventLogHead - eventLogCount + EVENT_LOG_SIZE) % EVENT_LOG_SIZE;
+    for (int i = 0; i < eventLogCount; i++) {
+      int idx = (start + i) % EVENT_LOG_SIZE;
+      unsigned long agoSec = (ms - eventLog[idx].timeMs) / 1000;
+      Serial.printf("  %d. %s — %02lu:%02lu ago\n",
+                    i + 1, eventLog[idx].name, agoSec / 60, agoSec % 60);
+    }
+  }
+  Serial.println("──────────────────────────────");
+}
+// ─────────────────────────────────────────────────────────
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   pinMode(PIR_PIN,   INPUT);
@@ -137,8 +170,11 @@ void handleSerialInput(unsigned long ms) {
     Serial.println("  r  Reset event counters");
     Serial.println("  q  Toggle quiet mode");
     Serial.println("  c  Print config values");
+    Serial.println("  l  Show last 5 events");
     Serial.println("  h  Show this help");
     Serial.println("──────────────────────────────");
+  } else if (cmd == 'l' || cmd == 'L') {
+    printEventLog(ms);
   } else if (cmd == 'c' || cmd == 'C') {
     Serial.println("── Config ────────────────────");
     Serial.printf( "  VERSION             : %s\n",   VERSION);
@@ -174,6 +210,7 @@ void loop() {
         motionStartTime = ms;
         lastEventTime = ms;
         lastEventName = "MOTION";
+        logEvent("MOTION", ms);
         if (quietMode) Serial.printf("[%lu ms] ", ms);
         Serial.printf("  >> MOTION DETECTED (#%d)", motionCount);
         if (motionCount >= ALERT_THRESHOLD)
@@ -196,6 +233,7 @@ void loop() {
       lastSoundTime = now;
       lastEventTime = now;
       lastEventName = "SOUND";
+      logEvent("SOUND", now);
       if (quietMode) Serial.printf("[%lu ms] ", now);
       Serial.printf("  >> SOUND TRIGGERED (#%d)", soundCount);
       Serial.println();
