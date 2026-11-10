@@ -156,11 +156,15 @@ void handleSerialInput(unsigned long ms) {
     Serial.println("[CMD] Status requested:");
     printStatus(ms);
   } else if (cmd == 'r' || cmd == 'R') {
-    motionCount  = 0;
-    soundCount   = 0;
+    motionCount   = 0;
+    soundCount    = 0;
     lastEventTime = 0;
     lastEventName = "none";
-    Serial.println("[CMD] Counters reset.");
+    lastThreatLevel = "NORMAL";
+    eventLogHead  = 0;
+    eventLogCount = 0;
+    motionStartTime = 0;
+    Serial.println("[CMD] Full reset: counters, event log and threat level cleared.");
   } else if (cmd == 'q' || cmd == 'Q') {
     quietMode = !quietMode;
     Serial.printf("[CMD] Quiet mode %s.\n", quietMode ? "ON  (events only)" : "OFF (verbose)");
